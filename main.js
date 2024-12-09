@@ -1,25 +1,38 @@
-const searchForm = document.getElementById("search-form");
-const searchBox = document.getElementById("search-box");
-const searchResult = document.getElementById("search-result");
-const submitBtn = document.getElementById("submit-btn");
+const API_KEY = 'jg8zNA5XKVxETX1lMK3pSzq1Hg7pxnBY'; // Declare API_KEY only once
+const Results_Container = document.getElementById('results');
 
+async function searchGifs() {
+    const query = document.getElementById('search-input').value;
+    if (!query) {
+        alert('Please enter a search term');
+        return;
+    }
 
-let keyword = "";
-let page = 1;
+    Results_Container.innerHTML = '';
 
-async function searchImages(){
-    keyword = searchBox.value;
+    try {
+        const response = await fetch(
+            `https://api.giphy.com/v1/gifs/search?api_key=${API_KEY}&q=${encodeURIComponent(query)}&limit=10`
+        );
 
-    let url = "//api.giphy.com/v1/gifs/search?q=+keyword+&api_key=jg8zNA5XKVxETX1IMK3pSzq1Hg7pxnBY";
-    const response = await fetch(url);
-    const data = await response.json();
-    
-    console.log(data);
+        if (!response.ok) throw new Error('Failed to fetch Gifs');
 
+        const { data } = await response.json();
+        displayGifs(data);
+    } catch (error) {
+        console.error('Error fetching Gifs:', error);
+        alert('Failed to fetch Gifs. Please try again later.');
+    }
 }
-
-searchForm.addEventListener("submit", (e) =>{
-    e.preventDefault();
-    page=1;
-    searchImages();
-})
+function displayGifs(gifs) {
+    if (gifs.length === 0) {
+        Results_Container.innerHTML = '<p>No results found</p>';
+        return;
+    }
+    gifs.forEach((gif) => {
+        const img = document.createElement('img');
+        img.src = gif.images.fixed_height.url;
+        img.alt = gif.title;
+        Results_Container.appendChild(img);
+    });
+}
